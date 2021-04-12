@@ -20,36 +20,40 @@ import br.com.cotiinformatica.services.TarefaService;
 public class TarefaDeleteController {
 
 	@Autowired
-	private TarefaService service;
-	
+	private TarefaService tarefaService;
+
 	@CrossOrigin
-	@RequestMapping(value = "/api/tarefas/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/api/tarefas/{id}/{emailUsuario}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public ResponseEntity<List<String>> delete(@PathVariable("id") Integer id) {
+	public ResponseEntity<List<String>> delete(@PathVariable("id") Integer id,
+			@PathVariable("emailUsuario") String emailUsuario) {
 
 		List<String> result = new ArrayList<String>();
-		
+
 		try {
+
+			// buscar a tarefa no repositorio pelo id
+			Tarefa tarefa = tarefaService.findById(id);
 			
-			//buscar a tarefa no repositorio pelo id
-			Tarefa tarefa = service.findById(id);
+			//verificando se a tarefa pertence ao usuario autenticado..
+			if(tarefa.getUsuario().getEmail().equals(emailUsuario)) {
+				
+				// excluindo a tarefa
+				tarefaService.delete(tarefa);
+
+				result.add("Tarefa excluída com sucesso.");
+
+				return ResponseEntity.status(HttpStatus.OK).body(result);
+			}
+			else {				
+				throw new Exception("Esta tarefa não pertence ao usuario autenticado.");
+			}
 			
-			//excluindo a tarefa
-			service.delete(tarefa);
-			
-			result.add("Tarefa excluída com sucesso.");
-			
-			return ResponseEntity
-					.status(HttpStatus.OK)
-					.body(result);			
-		}
-		catch(Exception e) {
-			
+		} catch (Exception e) {
+
 			result.add("Erro: " + e.getMessage());
-			
-			return ResponseEntity
-					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(result);			
-		}		
+
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+		}
 	}
 }

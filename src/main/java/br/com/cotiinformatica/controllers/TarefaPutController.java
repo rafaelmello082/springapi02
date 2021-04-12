@@ -16,14 +16,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import br.com.cotiinformatica.adapters.DTOEntityAdapter;
 import br.com.cotiinformatica.dtos.TarefaPutDTO;
 import br.com.cotiinformatica.entities.Tarefa;
+import br.com.cotiinformatica.entities.Usuario;
 import br.com.cotiinformatica.services.TarefaService;
+import br.com.cotiinformatica.services.UsuarioService;
 import br.com.cotiinformatica.validations.TarefaPutValidation;
 
 @Controller
 public class TarefaPutController {
 
 	@Autowired
-	private TarefaService service;
+	private TarefaService tarefaService;
+	
+	@Autowired
+	private UsuarioService usuarioService;
 
 	@CrossOrigin
 	@RequestMapping(value = "/api/tarefas", method = RequestMethod.PUT)
@@ -49,8 +54,12 @@ public class TarefaPutController {
 				//transferir os dados do DTO para um objeto da entidade Tarefa..
 				Tarefa tarefa = DTOEntityAdapter.getTarefa(dto);
 				
+				//buscando o usuario da tarefa atraves do email
+				Usuario usuario = usuarioService.find(dto.getEmailUsuario());
+				tarefa.setUsuario(usuario);
+				
 				//gravando no banco de dados
-				service.saveOrUpdate(tarefa);
+				tarefaService.saveOrUpdate(tarefa);
 				
 				result.add("Tarefa atualizada com sucesso.");
 				
